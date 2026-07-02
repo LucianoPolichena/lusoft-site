@@ -1,0 +1,232 @@
+================================================================
+MINIHORTO by LuSoft — INSTRUÇÕES DE PUBLICAÇÃO E MANUTENÇÃO
+================================================================
+
+ESTRUTURA DE ARQUIVOS
+─────────────────────
+Coloque todos os arquivos na RAIZ do seu repositório GitHub:
+
+  meu-repositorio/
+  ├── index.html       ← página principal (não editar)
+  ├── estilo.css       ← todos os estilos visuais
+  ├── script.js        ← toda a lógica do sistema
+  ├── dados.json       ← catálogo de plantas e configurações
+  └── INSTRUCOES.txt   ← este arquivo
+
+================================================================
+COMO PUBLICAR NO GITHUB PAGES
+================================================================
+
+PASSO 1 — Crie ou use um repositório existente no GitHub
+  → Acesse github.com e faça login
+  → Clique em "New repository" (ou use um existente)
+  → Dê um nome (ex: minihorto) e clique em "Create repository"
+
+PASSO 2 — Envie os arquivos
+  Opção A (interface web):
+    → Clique em "uploading an existing file"
+    → Arraste os 4 arquivos (index.html, estilo.css, script.js, dados.json)
+    → Clique em "Commit changes"
+
+  Opção B (Git no terminal):
+    git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO
+    cd SEU_REPOSITORIO
+    cp /caminho/dos/arquivos/* .
+    git add .
+    git commit -m "MiniHorto v2.0"
+    git push
+
+PASSO 3 — Ative o GitHub Pages
+  → No repositório, clique em "Settings"
+  → No menu lateral, clique em "Pages"
+  → Em "Source", selecione "Deploy from a branch"
+  → Em "Branch", selecione "main" e pasta "/ (root)"
+  → Clique em "Save"
+  → Aguarde 1-2 minutos
+  → Seu site estará em: https://SEU_USUARIO.github.io/SEU_REPOSITORIO/
+
+================================================================
+ACESSOS PADRÃO DO SISTEMA
+================================================================
+
+  ADMIN:   Telefone: (75) 99999-0000 | Senha: 999
+  CLIENTE: Telefone: (75) 99999-0001 | Senha: 123
+
+  IMPORTANTE: Estes acessos estão definidos em dados.json
+  na seção "usuarios_padrao". Altere antes de publicar!
+
+================================================================
+COMO ALTERAR O CATÁLOGO (dados.json)
+================================================================
+
+O arquivo dados.json contém todas as plantas do sistema.
+Abra-o em qualquer editor de texto (VS Code, Notepad++, etc.)
+
+ESTRUTURA DE UMA PLANTA:
+─────────────────────────
+{
+  "nome": "Nome Popular da Planta",
+  "sci": "Nome Científico",
+  "categoria": "flores",          ← ver lista de categorias abaixo
+  "emoji": "🌸",                  ← emoji representativo
+  "porte": "Médio",
+  "ambiente": "Interior",
+  "luz": "Meia sombra",           ← "Sol pleno" | "Meia sombra" | "Sombra"
+  "rega": "2x/semana",
+  "agua": "Moderada",
+  "solo": "Orgânico rico",
+  "adubacao": "NPK mensal",
+  "temp": "18-28°C",
+  "dif": "Fácil",                 ← "Fácil" | "Médio" | "Difícil"
+  "toxicidade": "Não tóxica",
+  "obs": "Texto com cuidados especiais...",
+  "curio": "Curiosidade sobre a planta..."
+}
+
+CATEGORIAS DISPONÍVEIS:
+  interior | exterior | flores | suculentas |
+  tropicais | aromaticas | frutiferas
+
+================================================================
+COMO ADICIONAR NOVAS PLANTAS
+================================================================
+
+1. Abra dados.json no editor
+2. Localize a seção "plantas": [...]
+3. Adicione um novo objeto ANTES do último "]"
+   (não esqueça a vírgula após o objeto anterior)
+
+EXEMPLO:
+  {
+    ...última planta...
+  },        ← vírgula aqui
+  {
+    "nome": "Minha Nova Planta",
+    "sci": "Nome Científico sp.",
+    "categoria": "flores",
+    "emoji": "🌷",
+    "porte": "Médio",
+    "ambiente": "Exterior",
+    "luz": "Sol pleno",
+    "rega": "3x/semana",
+    "agua": "Moderada",
+    "solo": "Fértil e drenado",
+    "adubacao": "NPK quinzenal",
+    "temp": "20-30°C",
+    "dif": "Fácil",
+    "toxicidade": "Não tóxica",
+    "obs": "Cuidados da planta aqui.",
+    "curio": "Curiosidade aqui."
+  }
+  ]          ← fecha o array de plantas
+
+4. Salve o arquivo
+5. Faça commit no GitHub (Settings → o site atualiza em ~1 min)
+
+================================================================
+COMO ALTERAR CONFIGURAÇÕES (dados.json)
+================================================================
+
+Na seção "configuracoes" do dados.json você pode alterar:
+
+  "whatsapp":    "5575991448979"   ← número do WhatsApp (com DDI)
+  "nome_app":    "MiniHorto"       ← nome exibido no app
+  "subtitulo":   "by LuSoft"       ← subtítulo abaixo do nome
+  "cor_primaria":"#2D5016"         ← cor verde escura principal
+  "cor_secundaria":"#5C7A3E"       ← cor verde mais clara
+
+================================================================
+COMO ALTERAR USUÁRIOS PADRÃO (dados.json)
+================================================================
+
+Na seção "usuarios_padrao" estão os usuários criados
+automaticamente quando o sistema é iniciado pela primeira vez:
+
+  {
+    "phone": "75999990000",   ← telefone (só números)
+    "senha": "999",           ← senha de 3 dígitos
+    "nome": "Andreza",
+    "role": "admin",          ← "admin" ou "cliente"
+    "avatar": "👩‍🌾"
+  }
+
+ATENÇÃO: Estes usuários só são criados se o banco local
+estiver vazio. Para forçar recriação, use o menu Admin →
+Dados → "Limpar todos os dados" antes de publicar.
+
+================================================================
+ESTRUTURA TÉCNICA DOS ARQUIVOS
+================================================================
+
+index.html
+  → Apenas HTML puro (estrutura da página)
+  → Não contém CSS nem JavaScript inline
+  → Importa: estilo.css e script.js
+
+estilo.css
+  → Todos os estilos visuais do sistema
+  → Cores, fontes, layout, responsividade
+  → Para customizar visual, edite apenas este arquivo
+
+script.js
+  → Toda a lógica do sistema
+  → Carrega dados.json automaticamente ao iniciar
+  → Gerencia: login, catálogo, jardim, notificações, admin
+  → Usa IndexedDB para salvar dados DO USUÁRIO localmente
+    (jardim, registros, fotos, produtos, contas criadas)
+
+dados.json
+  → Catálogo público de plantas (lido a cada acesso)
+  → Configurações do sistema
+  → Usuários padrão (seed inicial)
+  → Este é o único arquivo que você precisa editar
+    para atualizar o catálogo
+
+================================================================
+PREPARAÇÃO PARA FIREBASE / SUPABASE (FUTURO)
+================================================================
+
+O script.js já possui uma camada de abstração chamada "DB".
+Para migrar para Firebase, substitua apenas os métodos:
+
+  DB.add(store, data)      → addDoc(collection(db, store), data)
+  DB.all(store)            → getDocs(collection(db, store))
+  DB.get(store, id)        → getDoc(doc(db, store, id))
+  DB.put(store, data)      → setDoc(doc(db, store, data.id), data)
+  DB.del(store, id)        → deleteDoc(doc(db, store, id))
+  DB.byIdx(store, idx, v)  → query(collection(db,store), where(idx,'==',v))
+
+Para Firebase, adicione no <head> do index.html:
+  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js"></script>
+
+E no topo do script.js, descomente e preencha:
+  CONFIG.firebaseConfig = {
+    apiKey: "sua-api-key",
+    authDomain: "seu-projeto.firebaseapp.com",
+    projectId: "seu-projeto"
+  };
+
+================================================================
+FUNCIONAMENTO OFFLINE
+================================================================
+
+O app possui Service Worker que cacheia os arquivos.
+Após o primeiro acesso com internet, funciona offline para:
+  ✅ Login de usuários já cadastrados
+  ✅ Visualização do catálogo em cache
+  ✅ Meu Jardim e histórico
+  ✅ Calendário de cuidados
+
+Requer internet para:
+  ⚠️ Carregar atualização do dados.json
+  ⚠️ Cadastro de novos usuários (primeira vez)
+
+================================================================
+SUPORTE
+================================================================
+
+WhatsApp: (75) 99144-8979
+Desenvolvido por LuSoft © 2025
+
+================================================================
