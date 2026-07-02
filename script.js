@@ -5,10 +5,16 @@
 // ============================================================
 
 // ── CONFIGURAÇÃO ──
+const APP_VERSION = '2.1.0';
+
 const CONFIG = {
   dadosUrl: './dados.json',   // caminho relativo ao index.html
   dbName: 'MiniHortoLocal',   // IndexedDB local (dados do usuário)
   dbVersion: 1,
+  // Proxy para identificação de plantas por IA (ver INSTRUCOES.txt).
+  // Deixe vazio ('') para desativar a identificação automática.
+  // Exemplo com Cloudflare Worker: 'https://seu-worker.workers.dev/identificar'
+  aiProxyUrl: '',
   // Firebase (descomente quando quiser migrar):
   // firebaseConfig: { apiKey:'...', authDomain:'...', projectId:'...' }
 };
@@ -98,6 +104,12 @@ async function loadDadosJson() {
 async function init() {
   await DB.open();
   await loadDadosJson();
+  // Exibe versão para conferência de atualização
+  const vTag  = document.getElementById('version-tag');
+  const vLog  = document.getElementById('login-version');
+  if (vTag) vTag.textContent = `MiniHorto by LuSoft · v${APP_VERSION}`;
+  if (vLog) vLog.textContent = `v${APP_VERSION}`;
+  console.log(`%cMiniHorto by LuSoft — v${APP_VERSION}`, 'color:#2D5016;font-weight:bold;font-size:13px');
   const s = localStorage.getItem('mh_sess');
   if (s) {
     CU = JSON.parse(s);
@@ -636,7 +648,98 @@ function openPF(plant){
   document.getElementById('pf-ov').classList.add('on');
 }
 function closePF(){ document.getElementById('pf-ov').classList.remove('on'); }
-async function handleAdmPh(e){ const f=e.target.files[0]; if(!f)return; admPh=await b64(f); const prev=document.getElementById('adm-prev'); prev.querySelectorAll('img').forEach(i=>i.remove()); const img=document.createElement('img');img.src=admPh;img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';prev.appendChild(img);document.getElementById('adm-prev-e').style.display='none'; }
+async function handleAdmPh(e){
+  const f = e.target.files[0]; if(!f) return;
+  admPh = await b64(f);
+  // Show preview
+  const prev = document.getElementById('adm-prev');
+  prev.querySelectorAll('img').forEach(i=>i.remove());
+  const img = document.createElement('img');
+  img.src = admPh;
+  img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:8px';
+  prev.appendChild(img);
+  document.getElementById('adm-prev-e').style.display = 'none';
+  // Auto-identify
+  await identificarPlantaAdmin(admPh);
+}
+
+async function identificarPlantaAdmin(imageBase64) {
+  const status = document.getElementById('ai-status');
+
+  // Sem proxy configurado: a identificação automática exige um backend
+  // (chaves de API não podem ficar expostas em um site estático).
+  // Veja INSTRUCOES.txt → "IDENTIFICAÇÃO POR IA" para ativar.
+  if (!CONFIG.aiProxyUrl) {
+    if (status) {
+      status.style.display = 'block';
+      status.style.background = '#FFF3E0';
+      status.style.color = '#E65100';
+      status.innerHTML = '⚠️ Identificação automática desativada. Preencha os campos manualmente ' +
+        'ou configure <code>CONFIG.aiProxyUrl</code> em script.js (veja INSTRUCOES.txt).';
+    }
+    return;
+  }
+
+  if (status) {
+    status.style.display = 'block';
+    status.style.background = '#E3F2FD';
+    status.style.color = '#1565C0';
+    status.textContent = '🔍 Identificando planta com IA...';
+  }
+
+  try {
+    const base64Data = imageBase64.split(',')[1];
+    const mediaType  = imageBase64.split(';')[0].split(':')[1];
+
+    const response = await fetch(CONFIG.aiProxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64Data, mediaType })
+    });
+
+    if (!response.ok) throw new Error('Proxy retornou erro: ' + response.status);
+    const plant = await response.json(); // proxy deve devolver o JSON já pronto
+
+    // Preenche o formulário
+    if (plant.nome)       document.getElementById('f-nm').value  = plant.nome;
+    if (plant.sci)        document.getElementById('f-sc').value  = plant.sci;
+    if (plant.emoji)      document.getElementById('f-em').value  = plant.emoji;
+    if (plant.porte)      document.getElementById('f-pt').value  = plant.porte;
+    if (plant.rega)       document.getElementById('f-rg').value  = plant.rega;
+    if (plant.solo)       document.getElementById('f-sl').value  = plant.solo;
+    if (plant.adubacao)   document.getElementById('f-ad').value  = plant.adubacao;
+    if (plant.temp)       document.getElementById('f-tmp').value = plant.temp;
+    if (plant.toxicidade) document.getElementById('f-tx').value  = plant.toxicidade;
+    if (plant.obs)        document.getElementById('f-ob').value  = plant.obs;
+    if (plant.curio)      document.getElementById('f-cu').value  = plant.curio;
+
+    if (plant.categoria) {
+      const cats = ['interior','exterior','flores','suculentas','tropicais','aromaticas','frutiferas'];
+      if (cats.includes(plant.categoria)) document.getElementById('f-cat').value = plant.categoria;
+    }
+    if (plant.luz) {
+      const opt = ['Sol pleno','Meia sombra','Sombra'].find(l => plant.luz.toLowerCase().includes(l.toLowerCase()));
+      if (opt) document.getElementById('f-luz').value = opt;
+    }
+    if (plant.dif) {
+      const opt = ['Fácil','Médio','Difícil'].find(d => plant.dif.toLowerCase().includes(d.toLowerCase()));
+      if (opt) document.getElementById('f-dif').value = opt;
+    }
+
+    if (status) {
+      status.style.background = '#E8F5E9'; status.style.color = '#2E7D32';
+      status.textContent = `✅ Planta identificada: ${plant.nome} (${plant.sci}) — confira os campos.`;
+    }
+    toast('✅ ' + plant.nome + ' identificada!');
+
+  } catch (err) {
+    console.error('AI identify error:', err);
+    if (status) {
+      status.style.background = '#FFEBEE'; status.style.color = '#C62828';
+      status.textContent = '❌ Falha na identificação. Preencha os campos manualmente.';
+    }
+  }
+}
 function editP(id){ const p=allP.find(x=>x.id===id); if(p) openPF(p); }
 function savePF(){
   const nm=document.getElementById('f-nm').value.trim(); if(!nm){toast('⚠️ Informe o nome');return;}

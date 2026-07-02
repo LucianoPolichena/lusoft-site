@@ -388,3 +388,10 @@ body{min-height:100vh;background:#1E3A0F}
 .bnav{max-width:900px;left:50%;transform:translateX(-50%)}
 .fab{right:max(16px,calc(50% - 434px))}
 .toast-box{bottom:84px}
+
+/* ── AI IDENTIFY LOADING ── */
+@keyframes ai-pulse {
+  0%,100%{opacity:1} 50%{opacity:.5}
+}
+#ai-status[style*="E3F2FD"]{animation:ai-pulse 1.2s ease infinite}
+.adm-ph-prev:hover{border-color:#2D5016;background:#DCE9CE}

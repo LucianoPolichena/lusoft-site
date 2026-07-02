@@ -20,6 +20,7 @@
   <div class="lg-emblem">🌿</div>
   <h1 class="lg-title">MiniHorto<em>by LuSoft</em></h1>
   <p class="lg-tag">Plantas · Paisagismo · Jardinagem</p>
+  <p id="login-version" style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;text-align:center"></p>
   <div class="lg-card">
     <div class="tabs">
       <button class="tab on" onclick="switchTab('login',this)">Entrar</button>
@@ -155,6 +156,7 @@
           <button class="pfi" id="pwa-btn" onclick="doPWA()"><span class="pfi-ico">📲</span><span class="pfi-lbl">Instalar MiniHorto</span><span>›</span></button>
         </div>
         <button class="btn-logout" onclick="doLogout()">Sair da conta</button>
+        <p style="text-align:center;font-size:11px;color:#6B7A58;margin-top:16px" id="version-tag">MiniHorto by LuSoft</p>
       </div>
     </div>
   </div>
@@ -276,14 +278,20 @@
 <div class="fm-ov" id="pf-ov" onclick="if(event.target===this)closePF()">
   <div class="fm">
     <h2 id="pf-tit">Nova Planta</h2>
+    <div style="background:linear-gradient(135deg,#E8F5E9,#DCE9CE);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:#2D5016;display:flex;align-items:flex-start;gap:8px">
+      <span style="font-size:16px;flex-shrink:0">🤖</span>
+      <span>Envie uma foto da planta e a <strong>IA identificará automaticamente</strong> o nome popular (Bahia), científico e preencherá todos os cuidados.</span>
+    </div>
     <input type="hidden" id="pf-id">
     <div class="fg">
       <label>Foto</label>
-      <div class="adm-ph-prev" id="adm-prev" onclick="document.getElementById('adm-ph').click()">
+      <div class="adm-ph-prev" id="adm-prev" onclick="document.getElementById('adm-ph').click()" style="cursor:pointer" title="Clique para escolher foto — a IA identificará a planta automaticamente">
         <span id="adm-prev-e" style="font-size:36px">🌿</span>
-        <span style="font-size:12px;color:#6B7A58;margin-top:3px">Clique para foto</span>
+        <span style="font-size:12px;color:#6B7A58;margin-top:3px">📸 Clique para foto — IA preencherá os dados</span>
       </div>
       <input type="file" id="adm-ph" accept="image/*" onchange="handleAdmPh(event)" style="display:none">
+      <div id="ai-status" style="display:none;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.5;margin-top:6px"></div>
+      <button type="button" id="ai-identify-btn" onclick="document.getElementById('adm-ph').click()" style="display:none"></button>
     </div>
     <div class="frow">
       <div class="fg"><label>Nome *</label><input type="text" id="f-nm" placeholder="Ex: Orquídea"></div>

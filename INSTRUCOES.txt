@@ -230,3 +230,110 @@ WhatsApp: (75) 99144-8979
 Desenvolvido por LuSoft © 2025
 
 ================================================================
+
+================================================================
+IDENTIFICAÇÃO DE PLANTAS POR IA (Nova Planta → foto)
+================================================================
+
+IMPORTANTE — POR QUE NÃO FUNCIONA "DIRETO":
+  Um site estático (GitHub Pages) roda só no navegador do
+  visitante. Chamar uma API de IA (como a da Anthropic/OpenAI)
+  diretamente do navegador exigiria colocar sua CHAVE SECRETA
+  no código público — qualquer pessoa poderia copiá-la e usar
+  às suas custas. Por isso, esse recurso vem DESATIVADO por
+  padrão e o formulário pede preenchimento manual.
+
+COMO ATIVAR DE VERDADE (usando um proxy gratuito):
+  Você precisa de uma função "serverless" que guarda a chave
+  da API em segredo e repassa a foto para a IA. Isso é grátis
+  em vários serviços. Exemplo com Cloudflare Workers:
+
+  PASSO 1 — Crie uma conta em workers.cloudflare.com (grátis)
+
+  PASSO 2 — Crie um novo Worker com este código:
+
+    export default {
+      async fetch(request, env) {
+        if (request.method !== 'POST') return new Response('Method not allowed', {status:405});
+        const { image, mediaType } = await request.json();
+
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': env.ANTHROPIC_API_KEY,   // chave fica só no servidor
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 1000,
+            messages: [{
+              role: 'user',
+              content: [
+                { type:'image', source:{ type:'base64', media_type: mediaType, data: image } },
+                { type:'text', text:
+                  'Identifique esta planta. Responda APENAS com JSON, sem markdown. ' +
+                  'Use o nome popular como conhecido na Bahia/Nordeste do Brasil. Formato: ' +
+                  '{"nome":"","sci":"","categoria":"flores|interior|exterior|suculentas|tropicais|aromaticas|frutiferas",' +
+                  '"emoji":"","porte":"","ambiente":"","luz":"Sol pleno|Meia sombra|Sombra","rega":"",' +
+                  '"agua":"","solo":"","adubacao":"","temp":"","dif":"Fácil|Médio|Difícil","toxicidade":"","obs":"","curio":""}'
+                }
+              ]
+            }]
+          })
+        });
+        const data = await resp.json();
+        const text = data.content?.[0]?.text || '{}';
+        const match = text.match(/\{[\s\S]*\}/);
+        const plantJson = match ? match[0] : '{}';
+
+        return new Response(plantJson, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'   // ou seu domínio específico
+          }
+        });
+      }
+    };
+
+  PASSO 3 — Em "Settings → Variables", adicione a variável
+    secreta ANTHROPIC_API_KEY com sua chave da Anthropic
+    (obtida em console.anthropic.com)
+
+  PASSO 4 — Publique o Worker. Você receberá uma URL do tipo:
+    https://minihorto-ai.SEUUSUARIO.workers.dev
+
+  PASSO 5 — Em script.js, localize:
+    aiProxyUrl: '',
+  E altere para:
+    aiProxyUrl: 'https://minihorto-ai.SEUUSUARIO.workers.dev',
+
+  PASSO 6 — Salve, faça commit no GitHub e pronto!
+    A partir daí, ao enviar uma foto em "Nova Planta", os
+    campos serão preenchidos automaticamente pela IA.
+
+ALTERNATIVAS AO CLOUDFLARE WORKERS:
+  → Vercel Functions (vercel.com) — grátis, similar
+  → Netlify Functions (netlify.com) — grátis, similar
+  → Firebase Cloud Functions — se já for usar Firebase
+
+CUSTO:
+  A API da Anthropic é paga por uso (poucos centavos por
+  identificação). Consulte anthropic.com/pricing.
+  Os serviços de proxy (Cloudflare/Vercel/Netlify) são
+  gratuitos até um limite generoso de uso mensal.
+
+================================================================
+COMO CONFERIR SE O SITE ESTÁ ATUALIZADO
+================================================================
+
+O número da versão aparece em dois lugares:
+  1. Tela de login, abaixo do subtítulo (texto pequeno "vX.X.X")
+  2. Menu Perfil do cliente, abaixo do botão "Sair da conta"
+  3. Console do navegador (F12 → Console) ao abrir o site
+
+A versão atual deste pacote é: 2.1.0
+
+Ao atualizar os arquivos no GitHub, aguarde 1-2 minutos e
+force o recarregamento da página (Ctrl+Shift+R ou Cmd+Shift+R)
+para garantir que o navegador não está usando cache antigo.
